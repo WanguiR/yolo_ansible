@@ -1,0 +1,13 @@
+---   
+- name: Copy Dockerfiles for backend 
+  copy:
+      src: /home/ry/Desktop/dev/yolo_ansible/yolo/backend/Dockerfile
+      dest: /var/www/yolo-app/
+  with_items:
+    - Dockerfile
+
+- name: Build the backend Docker container
+  command: docker build -t yolo-backend-app /home/ry/Desktop/dev/yolo_ansible/yolo/backend -f /home/ry/Desktop/dev/yolo_ansible/yolo/backend/Dockerfile
+
+- name: Start the backend container using Docker Compose
+  command: docker-compose -f /var/docker-compose/docker-compose.yml up -d backend
