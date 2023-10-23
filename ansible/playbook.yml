@@ -1,0 +1,56 @@
+---
+- name: Deploy Yolo Application
+  hosts: default
+  become: yes
+  tasks:
+    - name: Update APT package cache
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name: "{{ packages }}"
+      vars:
+        packages:
+          - python3-pip
+          - python3-setuptools
+          - python3-dev
+          - docker.io
+          - docker-compose
+          - git
+
+    - name: Clone application code from GitHub 
+      git:
+        repo: https://github.com/WanguiR/yolo_ansible.git
+        dest: /path/to/app
+        update: yes
+      register: git_clone
+
+    - name: Copy dockercompose 
+      copy:
+        src:  /home/ry/Desktop/dev/yolo_ansible/yolo/docker-compose.yml 
+        dest: /var/docker-compose    
+      when: git_clone.changed
+
+    - name: Copy Dockerfiles for client 
+      copy:
+        src: /home/ry/Desktop/dev/yolo_ansible/yolo/client/Dockerfile
+        dest: /var/www/yolo-app/
+      with_items:
+        - Dockerfile
+
+    - name: Copy Dockerfiles for backend 
+      copy:
+        src: /home/ry/Desktop/dev/yolo_ansible/yolo/backend/Dockerfile
+        dest: /var/www/yolo-app/
+      with_items:
+        - Dockerfile
+
+        
+    - name: Run Docker Compose
+      command: docker-compose build
+    
+    - name: Run Docker Compose
+      command: docker-compose up -d 
+      args:
+        chdir: /var/docker-compose 
