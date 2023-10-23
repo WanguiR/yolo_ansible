@@ -3,7 +3,7 @@
   hosts: default
   become: yes
   tasks:
-    - name: Update APT package cache
+    - name: Setup task
       apt:
         update_cache: yes
 
@@ -22,9 +22,17 @@
     - name: Clone application code from GitHub 
       git:
         repo: https://github.com/WanguiR/yolo_ansible.git
-        dest: /path/to/app
+        dest: /var/www/yolo-app
         update: yes
       register: git_clone
+
+    - name: Set up Front-end
+      role:
+        name: client
+
+    - name: Set up Back-end
+      import_role:
+        name: backend
 
     - name: Copy dockercompose 
       copy:
@@ -32,25 +40,3 @@
         dest: /var/docker-compose    
       when: git_clone.changed
 
-    - name: Copy Dockerfiles for client 
-      copy:
-        src: /home/ry/Desktop/dev/yolo_ansible/yolo/client/Dockerfile
-        dest: /var/www/yolo-app/
-      with_items:
-        - Dockerfile
-
-    - name: Copy Dockerfiles for backend 
-      copy:
-        src: /home/ry/Desktop/dev/yolo_ansible/yolo/backend/Dockerfile
-        dest: /var/www/yolo-app/
-      with_items:
-        - Dockerfile
-
-        
-    - name: Run Docker Compose
-      command: docker-compose build
-    
-    - name: Run Docker Compose
-      command: docker-compose up -d 
-      args:
-        chdir: /var/docker-compose 
